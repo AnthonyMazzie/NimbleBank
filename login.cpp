@@ -2,39 +2,129 @@
 #include <string.h>
 #include <stdlib.h>
 
-struct login
+typedef struct login
 {
     char first_name[30];
     char last_name[30];
     char username[30];
     char password[20];
     int accountBalance;
-};
+} account_t;
 
 void login(void);
 void registration(void);
 
-int main(void)
+void Usage(char *filename)
+{
+    printf("Usage: %s <file> <string>\n", filename);
+}
+
+/* Returns 0 if username is found, 1 if username is not found */
+int searchForUsername(char *fname, char *str)
+{
+    FILE *fp;
+    int line_num = 1;
+    int find_result = 0;
+    char temp[512];
+
+    // gcc
+    // if((fp = fopen(fname, "r")) == NULL) {
+    //	return(-1);
+    // }
+
+    // Visual Studio
+    if ((fopen_s(&fp, fname, "r")) != NULL)
+    {
+        return (-1);
+    }
+
+    while (fgets(temp, 512, fp) != NULL)
+    {
+        if ((strstr(temp, str)) != NULL)
+        {
+            printf("A match found on line: %d\n", line_num);
+            printf("\n%s\n", temp);
+            find_result++;
+        }
+        line_num++;
+    }
+
+    if (find_result == 0)
+    {
+        return 1;
+    }
+
+    if (fp)
+    {
+        fclose(fp);
+    }
+    return (0);
+}
+
+/* Returns 0 if password is found, 1 if password is not found */
+int searchForPassword(char *fname, char *str)
+{
+    FILE *fp;
+    int line_num = 1;
+    int find_result = 0;
+    char temp[512];
+
+    // gcc
+    // if((fp = fopen(fname, "r")) == NULL) {
+    //	return(-1);
+    // }
+
+    // Visual Studio
+    if ((fopen_s(&fp, fname, "r")) != NULL)
+    {
+        return (-1);
+    }
+
+    while (fgets(temp, 512, fp) != NULL)
+    {
+        if ((strstr(temp, str)) != NULL)
+        {
+            printf("A match found on line: %d\n", line_num);
+            printf("\n%s\n", temp);
+            find_result++;
+        }
+        line_num++;
+    }
+
+    if (find_result == 0)
+    {
+        return 1;
+    }
+
+    if (fp)
+    {
+        fclose(fp);
+    }
+    return (0);
+}
+
+int main(int argc, char *argv[])
 {
     char option;
 
     while (1)
     {
-        printf("\n    Main Menu\n----------------\n'1' to Register\n'2' to Login\n'Q' to Quit\n");
+        printf("\n    Main Menu\n----------------\n'1' to Register\n'2' to Login\n'Q' to Quit\n----------------\n");
         option = getchar();
-        printf("Option entered: %c", option);
 
+        /* 49 == '1' */
         if (option == 49)
         {
             system("CLS");
             registration();
         }
-
+        /* 50 == '2' */
         else if (option == 50)
         {
             system("CLS");
             login();
         }
+        /* 81 == 'Q' */
         else if (option == 81)
         {
             break;
@@ -65,59 +155,56 @@ int getNewAccountID()
     return totalAccountQuantity;
 }
 
-// TODO
 void login(void)
 {
     char username[30], password[20];
-    FILE *log;
+    FILE *credentialsFile;
+    int usernameFound = 1;
+    char fileName[10] = "login.txt";
 
-    log = fopen("login.txt", "r");
-    if (log == NULL)
+    credentialsFile = fopen(fileName, "r");
+
+    if (credentialsFile == NULL)
     {
         fputs("Error at opening File!", stderr);
         exit(1);
     }
 
-    struct login l;
+    account_t userAccount;
 
     printf("\nPlease Enter your login credentials below\n\n");
-    printf("Username:  ");
-    fgets(username, 30, stdin);
-    printf("\nPassword: ");
-    printf("\n");
-    fgets(password, 20, stdin);
-    printf("Username: %s\n", username);
-    printf("Password: %s\n", password);
+    printf("Enter Username: ");
+    scanf("%s", userAccount.username);
+    printf("Enter Password: ");
+    scanf("%s", userAccount.password);
 
-    while (fread(&l, sizeof(l), 1, log))
+    /* Search credentialsFile for username */
+    usernameFound = searchForUsername(fileName, userAccount.username);
+
+    if (usernameFound == 0)
     {
-        int i;
-        printf("\nTesting!!, %d", i);
-
-        if (strcmp(username, l.username) == 0 && strcmp(password, l.password) == 0)
-
+        int passwordFound = searchForPassword(fileName, userAccount.password);
+        if (passwordFound == 0)
         {
-            printf("Username: %s\n", username);
-            printf("Password: %s\n", password);
-            printf("\nSuccessful Login\n");
+            printf("\nUser is logged in!");
         }
         else
         {
-            printf("\nINCORRECT: Username: %s", username);
-            printf("\nINCORRECT: Password: %s", password);
-            printf("\nINCORRECT Login Details Provided. Exiting...");
+            printf("\nPassword incorrect!");
         }
     }
+    else
+    {
+        printf("Username not found!");
+    }
 
-    fclose(log);
-
+    fclose(credentialsFile);
     return;
 }
 
 void registration(void)
 {
     int newAccountID = getNewAccountID();
-    char firstname[15];
     FILE *log;
 
     log = fopen("login.txt", "a");
@@ -127,17 +214,17 @@ void registration(void)
         exit(1);
     }
 
-    struct login login;
+    account_t userAccount;
 
     /* Gets new user information from user */
     printf("\nEnter First Name: ");
-    scanf("%s", login.first_name);
+    scanf("%s", userAccount.first_name);
     printf("Enter Last Name: ");
-    scanf("%s", login.last_name);
+    scanf("%s", userAccount.last_name);
     printf("Enter Username: ");
-    scanf("%s", login.username);
+    scanf("%s", userAccount.username);
     printf("Enter Password: ");
-    scanf("%s", login.password);
+    scanf("%s", userAccount.password);
     getchar(); // Scanf leaves '\n' in the input buffer. This 'getchar()' reads that new line so that the next 'getchar()' below will catch.
 
     /* Write new user information to file */
@@ -147,19 +234,17 @@ void registration(void)
         fprintf(log, "account_id,first_name,last_name,username,password\n");
     }
     fprintf(log, "%d,", newAccountID);
-    fprintf(log, "%s,", login.first_name);
-    fprintf(log, "%s,", login.last_name);
-    fprintf(log, "%s,", login.username);
-    fprintf(log, "%s", login.password);
+    fprintf(log, "%s,", userAccount.first_name);
+    fprintf(log, "%s,", userAccount.last_name);
+    fprintf(log, "%s,", userAccount.username);
+    fprintf(log, "%s", userAccount.password);
     fprintf(log, "\n");
 
     fclose(log);
 
     printf("\nRegistration Successful!");
-    printf("\nWelcome, %s!\n", login.first_name);
+    printf("\nWelcome, %s!\n", userAccount.first_name);
 
     printf("\nPress enter to continue...");
     getchar();
-
-    // login();
 }

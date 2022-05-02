@@ -397,7 +397,6 @@ void registration(void)
 void closeAccount();
 void loanApplication();
 void transferFunds();
-void withdrawFunds();
 
 /* Updates internal data structure representing the bank accounts of all users */
 void updateDataStructure()
@@ -433,6 +432,31 @@ void updateDataStructure()
         line = "";
     }
     // displayAccounts(userBankAccountVector);
+}
+
+void withdrawFunds(int accountID)
+{
+    // system("CLS");
+    int amount;
+    printf("\nWithdrawing funds\n");
+    printf("----------------------------");
+    printf("\nEnter amount to withdraw: ");
+    scanf("%d", &amount);
+    getchar(); // Get '\n' from scanf above
+    int currentAmount = stoi(userBankAccountVector.at(accountID).AccountBal);
+    if ((currentAmount - amount) < 0)
+    {
+        printf("Insufficient funds...");
+        printf("\nPress enter to continue...");
+        getchar();
+        getchar();
+    }
+    else
+    {
+        userBankAccountVector.at(accountID).AccountBal = to_string(currentAmount - amount);
+        writeNewFile();
+        updateDataStructure();
+    }
 }
 
 /* Allows an authenticated user the ability to deposit funds into their account */

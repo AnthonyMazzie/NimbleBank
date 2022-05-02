@@ -210,7 +210,7 @@ void registration(void)
     log = fopen("login.txt", "a");
     if (log == NULL)
     {
-        fputs("Error opening File!", stderr);
+        fputs("Error opening file.", stderr);
         exit(1);
     }
 

@@ -1,7 +1,7 @@
 account_id,first_name,last_name,username,password,account_balance
 1,this,is,a,game,0
 2,not,a,fun,game,0
-3,or,is,this,fun,0
+3,or,is,this,fun,1000
 4,i,really,don,know,0
 5,fuck,this,game,over,0
 6,low,go,fh,ckd,0

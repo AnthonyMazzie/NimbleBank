@@ -6,11 +6,14 @@
 #include <fstream>
 #include <vector>
 #include <sstream>
+#include <iterator>
 using namespace std;
 
 bool userLoggedIn = false;
 string loggedInUsername;
+int loggedInUserID = -1;
 
+/* The user bank account class has an ID, first name, last name, username, password and account balance. */
 class userBankAccount
 {
 public:
@@ -48,6 +51,7 @@ public:
     string AccountBal;
 };
 
+/* Displays all bank accounts for the input vector file */
 void displayAccounts(vector<userBankAccount> &accountsFile)
 {
     for (auto userAccount : accountsFile)
@@ -59,6 +63,7 @@ void displayAccounts(vector<userBankAccount> &accountsFile)
 
 vector<userBankAccount> userBankAccountVector;
 
+/* The login/account_t typedef struct represents a user attempting to login to the bank system */
 typedef struct login
 {
     int accountID;
@@ -69,8 +74,8 @@ typedef struct login
     int accountBalance;
 } account_t;
 
-void login(void);
-void registration(void);
+void login(void);        // Prototype
+void registration(void); // Prototype
 
 /* Reads contents of account file into C++ Class */
 void readFileContents()
@@ -108,9 +113,20 @@ void readFileContents()
     // displayAccounts(userBankAccountVector);
 }
 
+/* Updates the file with any updated information */
 void writeNewFile()
 {
-    // TODO
+    FILE *fp;
+    fp = fopen("outputFile.txt", "w");
+    fprintf(fp, "account_id,first_name,last_name,username,password,account_balance\n"); // Print header
+    for (auto userAccount : userBankAccountVector)                                      // Print all accounts
+    {
+        fprintf(fp, "%s,%s,%s,%s,%s,%s\n", userAccount.Account_ID.c_str(), userAccount.First_name.c_str(), userAccount.Last_name.c_str(), userAccount.Username.c_str(), userAccount.Password.c_str(), userAccount.AccountBal.c_str());
+    }
+    if (fp)
+    {
+        fclose(fp);
+    }
 }
 
 /* Returns 0 if username is found, 1 if username is not found */
@@ -136,9 +152,9 @@ int searchForUsername(char *fname, string accountUsername)
     {
         if ((strstr(temp, accountUsername.c_str())) != NULL)
         {
-            // printf("A match found on line: %d\n", line_num);
-            // printf("\n%s\n", temp);
-            find_result++;
+            // printf("Match found, line: %d\n", line_num);
+            loggedInUserID = line_num;
+            return 0;
         }
         line_num++;
     }
@@ -152,7 +168,48 @@ int searchForUsername(char *fname, string accountUsername)
     {
         fclose(fp);
     }
+
     return (0);
+}
+
+/* Returns ID if found, -1 if ID is not found */
+int searchForID(char *fname, string accountUsername)
+{
+    FILE *fp;
+    int line_num = 1;
+    int find_result = 0;
+    char temp[512];
+
+    // gcc
+    // if((fp = fopen(fname, "r")) == NULL) {
+    //	return(-1);
+    // }
+
+    // Visual Studio
+    if ((fopen_s(&fp, fname, "r")) != NULL)
+    {
+        return (-1);
+    }
+
+    while (fgets(temp, 512, fp) != NULL)
+    {
+        if ((strstr(temp, accountUsername.c_str())) != NULL)
+        {
+            find_result++;
+        }
+        line_num++;
+    }
+
+    if (find_result == 0)
+    {
+        return -1;
+    }
+
+    if (fp)
+    {
+        fclose(fp);
+    }
+    return line_num;
 }
 
 /* Returns 0 if password is found, 1 if password is not found */
@@ -178,7 +235,7 @@ int searchForPassword(char *fname, string userPassword)
     {
         if ((strstr(temp, userPassword.c_str())) != NULL)
         {
-            // printf("A match found on line: %d\n", line_num);
+            // printf("Match found, line: I%d\n", line_num);
             // printf("\n%s\n", temp);
             find_result++;
         }
@@ -197,6 +254,7 @@ int searchForPassword(char *fname, string userPassword)
     return (0);
 }
 
+/* Determines what the new account ID should be and returns it */
 int getNewAccountID()
 {
     int totalAccountQuantity = 0;
@@ -214,11 +272,11 @@ int getNewAccountID()
     }
 
     fclose(accountFile);
-    totalAccountQuantity++;
 
     return totalAccountQuantity;
 }
 
+/* Allows a user to login if their username and password match in the file */
 void login(void)
 {
     char username[30], password[20];
@@ -240,10 +298,10 @@ void login(void)
         readFileContents();
     }
 
-    printf("\nPlease Enter your login credentials below\n\n");
-    printf("\nEnter Username: ");
+    printf("Enter your login credentials below\n");
+    printf("Enter Username: ");
     cin >> accountName; // get user input from the keyboard
-    printf("\nEnter Password: ");
+    printf("Enter Password: ");
     cin >> userPassword; // get user input from the keyboard
 
     /* Search credentialsFile for username */
@@ -278,9 +336,12 @@ void login(void)
     return;
 }
 
+/* Allows a user to register to the bank system */
 void registration(void)
 {
     int newAccountID = getNewAccountID();
+
+    printf("\n\nnewaccid: %d", newAccountID);
     FILE *log;
 
     log = fopen("login.txt", "a");
@@ -311,9 +372,10 @@ void registration(void)
 
     /* Write new user information to file */
     /* Note: does not check for duplicate usernames / firstname+last name combinations */
-    if (newAccountID == 1)
+    if (newAccountID == 0)
     {
         fprintf(log, "account_id,first_name,last_name,username,password,account_balance\n");
+        newAccountID++;
     }
     fprintf(log, "%d,", newAccountID);
     fprintf(log, "%s,", userAccount.first_name);
@@ -333,76 +395,85 @@ void registration(void)
 }
 
 void closeAccount();
-void depositFunds();
 void loanApplication();
 void transferFunds();
 void withdrawFunds();
 
-int balanceCheck()
+/* Updates internal data structure representing the bank accounts of all users */
+void updateDataStructure()
+{
+    fstream inputFile;
+    inputFile.open("./output.txt", ios::in);
+    string line = "";
+    // vector<userBankAccount> userBankAccountVector;
+    string dummyLine;              // To skip first line of CSV file
+    getline(inputFile, dummyLine); // To skip first line of CSV file
+    cout << endl;
+
+    while (getline(inputFile, line))
+    {
+        stringstream inputString(line);
+
+        string account_id;
+        string first_name;
+        string last_name;
+        string username;
+        string password;
+        string accountBalance;
+
+        getline(inputString, account_id, ',');
+        getline(inputString, first_name, ',');
+        getline(inputString, last_name, ',');
+        getline(inputString, username, ',');
+        getline(inputString, password, ',');
+        getline(inputString, accountBalance, ',');
+
+        userBankAccount thisAccount(account_id, first_name, last_name, username, password, accountBalance);
+        userBankAccountVector.push_back(thisAccount);
+        line = "";
+    }
+    // displayAccounts(userBankAccountVector);
+}
+
+/* Allows an authenticated user the ability to deposit funds into their account */
+void depositFunds(int accountID)
 {
     system("CLS");
-    char fileName[10] = "login.txt";
-    FILE *fp;
-    int line_num = 1;
-    int find_result = 0;
-    char temp[512];
+    int amount;
+    printf("\nDepositing funds\n");
+    printf("----------------------------");
+    printf("\nEnter amount to deposit: ");
+    scanf("%d", &amount);
+    getchar(); // Get '\n' from scanf above
+    int currentAmount = stoi(userBankAccountVector.at(accountID).AccountBal);
+    userBankAccountVector.at(accountID).AccountBal = to_string(currentAmount + amount);
+    writeNewFile();
+    updateDataStructure();
+}
 
-    // gcc
-    // if((fp = fopen(fname, "r")) == NULL) {
-    //	return(-1);
-    // }
-
-    // Visual Studio
-    if ((fopen_s(&fp, fileName, "r")) != NULL)
-    {
-        return (-1);
-    }
+/* Returns the current account balance of the logged in user */
+int balanceCheck(int accountID)
+{
     printf("\n-------------------------");
     printf("\nBALANCE CHECK");
+    int userBal = stoi(userBankAccountVector.at(accountID).AccountBal);
+    printf("\nUser ID         : %d", stoi(userBankAccountVector.at(accountID).Account_ID));
+    printf("\nUsername        : %s", userBankAccountVector.at(accountID).Username.c_str());
+    printf("\nAccount balance : %d", userBal);
 
-    while (fgets(temp, 512, fp) != NULL)
-    {
-        if ((strstr(temp, loggedInUsername.c_str())) != NULL)
-        {
-            int readIndex = 0;
-            char *pt;
-            pt = strtok(temp, ",");
-            while (pt != NULL)
-            {
-                string a = pt;
-                if (readIndex == 5)
-                {
-                    printf("\nAccount balance: %s", a.c_str());
-                }
+    // system("CLS");
 
-                pt = strtok(NULL, ",");
-                readIndex++;
-            }
-            find_result++;
-        }
-        line_num++;
-    }
-
-    if (find_result == 0)
-    {
-        return 1;
-    }
-
-    if (fp)
-    {
-        fclose(fp);
-    }
-
-    printf("-------------------------\n");
+    printf("\n-------------------------\n");
     printf("\nPress enter to continue...");
     getchar();
     getchar();
     return (0);
 }
 
+/* Prints to the screen all current information stored for the logged in user */
 int getAccountInfo()
 {
-    system("CLS");
+    // system("CLS");
     char fileName[10] = "login.txt";
     FILE *fp;
     int line_num = 1;
@@ -479,11 +550,12 @@ int getAccountInfo()
     return (0);
 }
 
+/* Logs the user out */
 void logOut()
 {
+    // system("CLS");
     userLoggedIn = false;
     loggedInUsername = " ";
-    system("CLS");
     printf("\nUser logged out.");
 }
 
@@ -497,7 +569,7 @@ int main(int argc, char *argv[])
         if (userLoggedIn == true)
         {
             fflush(stdin);
-            system("CLS");
+            // system("CLS");
             printf("\nUser Account Menu");
             printf("\n---------------------");
             printf("\n'B'alance check");
@@ -520,12 +592,12 @@ int main(int argc, char *argv[])
             /* 'D' == 68 */
             else if (option == 68)
             {
-                // depositFunds();
+                depositFunds(loggedInUserID);
             }
             /* 'B' == 66 */
             else if (option == 66)
             {
-                balanceCheck();
+                balanceCheck(loggedInUserID);
             }
             /* 'I' == 73 */
             else if (option == 73)
@@ -540,6 +612,7 @@ int main(int argc, char *argv[])
             /* 'T' == 84 */
             else if (option == 84)
             {
+                writeNewFile(); // TEST
                 // transferFunds();
             }
             /* 'W' == 87 */

@@ -43,6 +43,16 @@ public:
         cout << "Account Balance : " << AccountBal << endl;
     }
 
+    void setToNull()
+    {
+        Account_ID.clear();
+        First_name.clear();
+        Last_name.clear();
+        Username.clear();
+        Password.clear();
+        AccountBal.clear();
+    }
+
     string Account_ID;
     string First_name;
     string Last_name;
@@ -110,7 +120,7 @@ void readFileContents()
         userBankAccountVector.push_back(thisAccount);
         line = "";
     }
-    // displayAccounts(userBankAccountVector);
+    displayAccounts(userBankAccountVector);
 }
 
 /* Updates the file with any updated information */
@@ -394,7 +404,13 @@ void registration(void)
     getchar();
 }
 
-void closeAccount();
+/* Closes the account of the user who is logged in */
+void closeAccount(int accountID)
+{
+    userBankAccountVector.at(accountID - 1).setToNull();
+    userLoggedIn = false;
+}
+
 void loanApplication();
 void transferFunds();
 
@@ -404,7 +420,6 @@ void updateDataStructure()
     fstream inputFile;
     inputFile.open("./output.txt", ios::in);
     string line = "";
-    // vector<userBankAccount> userBankAccountVector;
     string dummyLine;              // To skip first line of CSV file
     getline(inputFile, dummyLine); // To skip first line of CSV file
     cout << endl;
@@ -431,7 +446,7 @@ void updateDataStructure()
         userBankAccountVector.push_back(thisAccount);
         line = "";
     }
-    // displayAccounts(userBankAccountVector);
+    displayAccounts(userBankAccountVector);
 }
 
 void withdrawFunds(int accountID)
@@ -453,6 +468,7 @@ void withdrawFunds(int accountID)
     }
     else
     {
+        printf("\nAmount withdrawn");
         userBankAccountVector.at(accountID).AccountBal = to_string(currentAmount - amount);
         writeNewFile();
         updateDataStructure();
@@ -585,7 +601,6 @@ void logOut()
 
 int main(int argc, char *argv[])
 {
-
     char option;
 
     while (1)
@@ -611,7 +626,7 @@ int main(int argc, char *argv[])
             /* 'C' == 67 */
             if (option == 67)
             {
-                // closeAccount();
+                closeAccount(loggedInUserID);
             }
             /* 'D' == 68 */
             else if (option == 68)
@@ -636,13 +651,12 @@ int main(int argc, char *argv[])
             /* 'T' == 84 */
             else if (option == 84)
             {
-                writeNewFile(); // TEST
                 // transferFunds();
             }
             /* 'W' == 87 */
             else if (option == 87)
             {
-                // withdrawFunds();
+                withdrawFunds(loggedInUserID);
             }
             /* 'E" == 69 */
             else if (option == 69)

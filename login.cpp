@@ -3,12 +3,65 @@
 #include <stdlib.h>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <vector>
+#include <sstream>
 using namespace std;
 
 bool userLoggedIn = false;
+string loggedInUsername;
+
+class userBankAccount
+{
+public:
+    userBankAccount(
+        string account_id,
+        string first_name,
+        string last_name,
+        string username,
+        string password,
+        string accountBalance)
+    {
+        Account_ID = account_id;
+        First_name = first_name;
+        Last_name = last_name;
+        Username = username;
+        Password = password;
+        AccountBal = accountBalance;
+    }
+
+    void display()
+    {
+        cout << "     Account ID : " << Account_ID << endl;
+        cout << "     First name : " << First_name << endl;
+        cout << "      Last name : " << Last_name << endl;
+        cout << "       Username : " << Username << endl;
+        cout << "       Password : " << Password << endl;
+        cout << "Account Balance : " << AccountBal << endl;
+    }
+
+    string Account_ID;
+    string First_name;
+    string Last_name;
+    string Username;
+    string Password;
+    string AccountBal;
+};
+
+void displayAccounts(vector<userBankAccount> &accountsFile)
+{
+    for (auto userAccount : accountsFile)
+    {
+        userAccount.display();
+        cout << endl;
+    }
+}
+
+vector<userBankAccount> userBankAccountVector;
 
 typedef struct login
 {
+    int accountID;
     char first_name[30];
     char last_name[30];
     char username[30];
@@ -19,9 +72,45 @@ typedef struct login
 void login(void);
 void registration(void);
 
-void Usage(char *filename)
+/* Reads contents of account file into C++ Class */
+void readFileContents()
 {
-    printf("Usage: %s <file> <string>\n", filename);
+    fstream inputFile;
+    inputFile.open("./login.txt", ios::in);
+    string line = "";
+    // vector<userBankAccount> userBankAccountVector;
+    string dummyLine;              // To skip first line of CSV file
+    getline(inputFile, dummyLine); // To skip first line of CSV file
+    cout << endl;
+
+    while (getline(inputFile, line))
+    {
+        stringstream inputString(line);
+
+        string account_id;
+        string first_name;
+        string last_name;
+        string username;
+        string password;
+        string accountBalance;
+
+        getline(inputString, account_id, ',');
+        getline(inputString, first_name, ',');
+        getline(inputString, last_name, ',');
+        getline(inputString, username, ',');
+        getline(inputString, password, ',');
+        getline(inputString, accountBalance, ',');
+
+        userBankAccount thisAccount(account_id, first_name, last_name, username, password, accountBalance);
+        userBankAccountVector.push_back(thisAccount);
+        line = "";
+    }
+    // displayAccounts(userBankAccountVector);
+}
+
+void writeNewFile()
+{
+    // TODO
 }
 
 /* Returns 0 if username is found, 1 if username is not found */
@@ -146,6 +235,10 @@ void login(void)
         fputs("Error at opening File!", stderr);
         exit(1);
     }
+    else
+    {
+        readFileContents();
+    }
 
     printf("\nPlease Enter your login credentials below\n\n");
     printf("\nEnter Username: ");
@@ -163,6 +256,7 @@ void login(void)
         {
             // printf("\nUser is logged in!");
             userLoggedIn = true;
+            loggedInUsername = accountName;
         }
         else
         {
@@ -194,6 +288,10 @@ void registration(void)
     {
         fputs("Error opening file.", stderr);
         exit(1);
+    }
+    else
+    {
+        readFileContents();
     }
 
     account_t userAccount;
@@ -239,11 +337,159 @@ void depositFunds();
 void loanApplication();
 void transferFunds();
 void withdrawFunds();
-void balanceCheck();
-void logOut();
+
+int balanceCheck()
+{
+    system("CLS");
+    char fileName[10] = "login.txt";
+    FILE *fp;
+    int line_num = 1;
+    int find_result = 0;
+    char temp[512];
+
+    // gcc
+    // if((fp = fopen(fname, "r")) == NULL) {
+    //	return(-1);
+    // }
+
+    // Visual Studio
+    if ((fopen_s(&fp, fileName, "r")) != NULL)
+    {
+        return (-1);
+    }
+    printf("\n-------------------------");
+    printf("\nBALANCE CHECK");
+
+    while (fgets(temp, 512, fp) != NULL)
+    {
+        if ((strstr(temp, loggedInUsername.c_str())) != NULL)
+        {
+            int readIndex = 0;
+            char *pt;
+            pt = strtok(temp, ",");
+            while (pt != NULL)
+            {
+                string a = pt;
+                if (readIndex == 5)
+                {
+                    printf("\nAccount balance: %s", a.c_str());
+                }
+
+                pt = strtok(NULL, ",");
+                readIndex++;
+            }
+            find_result++;
+        }
+        line_num++;
+    }
+
+    if (find_result == 0)
+    {
+        return 1;
+    }
+
+    if (fp)
+    {
+        fclose(fp);
+    }
+
+    printf("-------------------------\n");
+    printf("\nPress enter to continue...");
+    getchar();
+    getchar();
+    return (0);
+}
+
+int getAccountInfo()
+{
+    system("CLS");
+    char fileName[10] = "login.txt";
+    FILE *fp;
+    int line_num = 1;
+    int find_result = 0;
+    char temp[512];
+
+    // gcc
+    // if((fp = fopen(fname, "r")) == NULL) {
+    //	return(-1);
+    // }
+
+    // Visual Studio
+    if ((fopen_s(&fp, fileName, "r")) != NULL)
+    {
+        return (-1);
+    }
+    printf("\n-------------------------");
+    printf("\nACCOUNT INFORMATION ");
+
+    while (fgets(temp, 512, fp) != NULL)
+    {
+        if ((strstr(temp, loggedInUsername.c_str())) != NULL)
+        {
+            int readIndex = 0;
+            char *pt;
+            pt = strtok(temp, ",");
+            while (pt != NULL)
+            {
+                string a = pt;
+                if (readIndex == 0)
+                {
+                    printf("\nAccountID      : %s", a.c_str());
+                }
+                else if (readIndex == 1)
+                {
+                    printf("\nFirst name     : %s", a.c_str());
+                }
+                else if (readIndex == 2)
+                {
+                    printf("\nLast name      : %s", a.c_str());
+                }
+                else if (readIndex == 3)
+                {
+                    printf("\nUsername       : %s", a.c_str());
+                }
+                else if (readIndex == 5)
+                {
+                    printf("\nAccount balance: %s", a.c_str());
+                }
+
+                pt = strtok(NULL, ",");
+                readIndex++;
+            }
+            find_result++;
+        }
+        line_num++;
+    }
+
+    if (find_result == 0)
+    {
+        return 1;
+    }
+
+    if (fp)
+    {
+        fclose(fp);
+    }
+
+    printf("-------------------------\n");
+
+    printf("\nPress enter to continue...");
+    getchar();
+    getchar();
+    return (0);
+}
+
+void logOut()
+{
+    userLoggedIn = false;
+    loggedInUsername = " ";
+    system("CLS");
+    printf("\nUser logged out.");
+}
 
 int main(int argc, char *argv[])
 {
+
     char option;
 
     while (1)
@@ -251,59 +497,60 @@ int main(int argc, char *argv[])
         if (userLoggedIn == true)
         {
             fflush(stdin);
-            // system("CLS");
+            system("CLS");
             printf("\nUser Account Menu");
-            printf("\n----------------");
+            printf("\n---------------------");
             printf("\n'B'alance check");
             printf("\n'W'ithdraw");
             printf("\n'D'eposit");
             printf("\n'T'ransfer funds");
             printf("\n'L'oan application");
+            printf("\n'I'nfo");
             printf("\n'C'lose account");
-            printf("\n'ESC'ape\n");
+            printf("\n'E'scape (log out)");
+            printf("\n---------------------\n");
+
             option = getchar();
 
             /* 'C' == 67 */
             if (option == 67)
             {
-                // system("CLS");
                 // closeAccount();
             }
             /* 'D' == 68 */
             else if (option == 68)
             {
-                // system("CLS");
                 // depositFunds();
             }
             /* 'B' == 66 */
-            else if (option == 68)
+            else if (option == 66)
             {
-                // system("CLS");
-                // balanceCheck();
+                balanceCheck();
+            }
+            /* 'I' == 73 */
+            else if (option == 73)
+            {
+                getAccountInfo();
             }
             /* 'L' == 76 */
             else if (option == 76)
             {
-                // system("CLS");
                 // loanApplication();
             }
             /* 'T' == 84 */
             else if (option == 84)
             {
-                // system("CLS");
                 // transferFunds();
             }
             /* 'W' == 87 */
             else if (option == 87)
             {
-                // system("CLS");
                 // withdrawFunds();
             }
-            /* 'ESC" == 27 */
-            else if (option == 27)
+            /* 'E" == 69 */
+            else if (option == 69)
             {
-                // system("CLS");
-                // logOut();
+                logOut();
             }
         }
         else // User is not logged in
@@ -316,13 +563,11 @@ int main(int argc, char *argv[])
             /* 49 == '1' */
             if (option == 49)
             {
-                // system("CLS");
                 registration();
             }
             /* 50 == '2' */
             else if (option == 50)
             {
-                // system("CLS");
                 login();
             }
             /* 81 == 'Q' */

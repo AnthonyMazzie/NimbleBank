@@ -1,2 +1,3 @@
-account_id,first_name,last_name,username,password
-1,John,Doe,Loe,Grow,0
+account_id,first_name,last_name,username,password,account_balance
+1,John,Doe,Fuck,This,0
+3,Jan,Dan,Lan,Fan,0

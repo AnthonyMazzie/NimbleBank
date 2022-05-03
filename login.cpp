@@ -463,7 +463,6 @@ void closeAccount(int accountID)
 }
 
 void loanApplication();
-void transferFunds();
 
 /* Updates internal data structure representing the bank accounts of all users */
 void updateDataStructure()
@@ -699,11 +698,6 @@ int main(int argc, char *argv[])
             else if (option == 76)
             {
                 // loanApplication();
-            }
-            /* 'T' == 84 */
-            else if (option == 84)
-            {
-                // transferFunds();
             }
             /* 'W' == 87 */
             else if (option == 87)

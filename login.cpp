@@ -90,7 +90,6 @@ void registration(void); // Prototype
 /* Reads contents of account file into C++ Class */
 void readFileContents()
 {
-    printf("\nREADING FILE CONTENTS... ");
     fstream inputFile;
     inputFile.open("./login.txt", ios::in);
     string line = "";
@@ -120,7 +119,7 @@ void readFileContents()
         userBankAccountVector.push_back(thisAccount);
         line = "";
     }
-    displayAccounts(userBankAccountVector);
+    // displayAccounts(userBankAccountVector);
 }
 
 /* Updates the file with any updated information */
@@ -162,7 +161,7 @@ int searchForUsername(char *fname, string accountUsername)
     {
         if ((strstr(temp, accountUsername.c_str())) != NULL)
         {
-            printf("Match found, line: %d\n", line_num);
+            // printf("Match found, line: %d\n", line_num);
             loggedInUserID = line_num - 1;
             return 0;
         }
@@ -359,6 +358,7 @@ void login(void)
             // printf("\nUser is logged in!");
             userLoggedIn = true;
             loggedInUsername = accountName;
+            printf("\nUser logged in\n");
         }
         else
         {
@@ -375,7 +375,6 @@ void login(void)
         getchar();
         getchar();
     }
-
     fclose(credentialsFile);
     return;
 }
@@ -514,7 +513,6 @@ void withdrawFunds(int accountID)
         printf("Insufficient funds...");
         printf("\nPress enter to continue...");
         getchar();
-        getchar();
     }
     else
     {
@@ -551,9 +549,6 @@ int balanceCheck(int accountID)
     printf("\nUser ID         : %d", stoi(userBankAccountVector.at(accountID - 1).Account_ID));
     printf("\nUsername        : %s", userBankAccountVector.at(accountID - 1).Username.c_str());
     printf("\nAccount balance : %d", userBal);
-
-    // system("CLS");
-
     printf("\n-------------------------\n");
     printf("\nPress enter to continue...");
     getchar();
@@ -634,7 +629,6 @@ int getAccountInfo()
     }
 
     printf("-------------------------\n");
-
     printf("\nPress enter to continue...");
     getchar();
     getchar();
@@ -647,7 +641,7 @@ void logOut()
     // system("CLS");
     userLoggedIn = false;
     loggedInUsername = " ";
-    printf("\nUser logged out.");
+    printf("\nUser logged out\n");
 }
 
 int main(int argc, char *argv[])
@@ -665,8 +659,6 @@ int main(int argc, char *argv[])
             printf("\n'B'alance check");
             printf("\n'W'ithdraw");
             printf("\n'D'eposit");
-            printf("\n'T'ransfer funds");
-            printf("\n'L'oan application");
             printf("\n'I'nfo");
             printf("\n'C'lose account");
             printf("\n'E'scape (log out)");
@@ -677,54 +669,57 @@ int main(int argc, char *argv[])
             /* 'C' == 67 */
             if (option == 67)
             {
+                system("CLS");
                 closeAccount(loggedInUserID);
             }
             /* 'D' == 68 */
             else if (option == 68)
             {
+                system("CLS");
                 depositFunds(loggedInUserID);
             }
             /* 'B' == 66 */
             else if (option == 66)
             {
+                system("CLS");
                 balanceCheck(loggedInUserID);
             }
             /* 'I' == 73 */
             else if (option == 73)
             {
+                system("CLS");
                 getAccountInfo();
-            }
-            /* 'L' == 76 */
-            else if (option == 76)
-            {
-                // loanApplication();
             }
             /* 'W' == 87 */
             else if (option == 87)
             {
+                system("CLS");
                 withdrawFunds(loggedInUserID);
             }
             /* 'E" == 69 */
             else if (option == 69)
             {
+                system("CLS");
                 logOut();
             }
         }
         else // User is not logged in
         {
             fflush(stdin);
-            // system("CLS");
+            system("CLS");
             printf("\n    Main Menu\n----------------\n'1' to Register\n'2' to Login\n'Q' to Quit\n----------------\n");
             option = getchar();
 
             /* 49 == '1' */
             if (option == 49)
             {
+                system("CLS");
                 registration();
             }
             /* 50 == '2' */
             else if (option == 50)
             {
+                system("CLS");
                 login();
             }
             /* 81 == 'Q' */
@@ -733,6 +728,7 @@ int main(int argc, char *argv[])
                 break;
             }
         }
+        system("CLS");
     }
     return 0;
 }

@@ -1,3 +1,0 @@
-account_id,first_name,last_name,username,password,account_balance
-1,John,Jones,Lon,Bon,0
-2,what,the,fuck,is,1

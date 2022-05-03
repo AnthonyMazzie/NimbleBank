@@ -1,10 +1,3 @@
 account_id,first_name,last_name,username,password,account_balance
-1,this,is,a,game,0
-2,not,a,fun,game,0
-3,or,is,this,fun,0
-4,i,really,don,know,0
-5,fuck,this,game,over,0
-6,low,go,fh,ckd,0
-7,john,doe,low,fo,0
-8,fan,ban,msdn,ad,0
-9,fuck,this,game,ha,0
+1,John,Jones,Lon,Bon,0
+2,what,the,fuck,is,0

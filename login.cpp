@@ -90,10 +90,10 @@ void registration(void); // Prototype
 /* Reads contents of account file into C++ Class */
 void readFileContents()
 {
+    printf("\nREADING FILE CONTENTS... ");
     fstream inputFile;
     inputFile.open("./login.txt", ios::in);
     string line = "";
-    // vector<userBankAccount> userBankAccountVector;
     string dummyLine;              // To skip first line of CSV file
     getline(inputFile, dummyLine); // To skip first line of CSV file
     cout << endl;
@@ -162,8 +162,42 @@ int searchForUsername(char *fname, string accountUsername)
     {
         if ((strstr(temp, accountUsername.c_str())) != NULL)
         {
-            // printf("Match found, line: %d\n", line_num);
-            loggedInUserID = line_num;
+            printf("Match found, line: %d\n", line_num);
+            loggedInUserID = line_num - 1;
+            return 0;
+        }
+        line_num++;
+    }
+
+    if (find_result == 0)
+    {
+        return 1;
+    }
+
+    if (fp)
+    {
+        fclose(fp);
+    }
+
+    return (0);
+}
+
+/* Returns 0 if username is found, 1 if username is not found */
+int searchForUsername2(char *fname, string accountUsername)
+{
+    FILE *fp;
+    int line_num = 1;
+    int find_result = 0;
+    char temp[512];
+
+    fp = fopen("login.txt", "r");
+
+    while (fgets(temp, 512, fp) != NULL)
+    {
+        if ((strstr(temp, accountUsername.c_str())) != NULL)
+        {
+            printf("Match found, line: %d\n", line_num);
+            loggedInUserID = line_num - 1;
             return 0;
         }
         line_num++;
@@ -351,7 +385,6 @@ void registration(void)
 {
     int newAccountID = getNewAccountID();
 
-    printf("\n\nnewaccid: %d", newAccountID);
     FILE *log;
 
     log = fopen("login.txt", "a");
@@ -362,23 +395,40 @@ void registration(void)
     }
     else
     {
-        readFileContents();
+        // readFileContents();
     }
 
     account_t userAccount;
-
+    string userUsername;
+    string userPassword;
+    char fileName[10] = "login.txt";
     int initialAccountBalance = 0;
 
-    /* Gets new user information from user */
-    printf("\nEnter First Name: ");
-    scanf("%s", userAccount.first_name);
-    printf("Enter Last Name: ");
-    scanf("%s", userAccount.last_name);
-    printf("Enter Username: ");
-    scanf("%s", userAccount.username);
-    printf("Enter Password: ");
-    scanf("%s", userAccount.password);
-    getchar(); // Scanf leaves '\n' in the input buffer. This 'getchar()' reads that new line so that the next 'getchar()' below will catch.
+    /* Checks "database" text file for username, if it exists, get user input again */
+    bool usernameChosen = false;
+    while (usernameChosen == false)
+    {
+        /* Gets new user information from user */
+        printf("\nEnter First Name: ");
+        scanf("%s", userAccount.first_name);
+
+        printf("Enter Last Name: ");
+        scanf("%s", userAccount.last_name);
+
+        printf("Enter Username: ");
+        cin >> userUsername;                                            // get user input from the keyboard
+        int usernameCheck = searchForUsername2(fileName, userUsername); // 0 if username is found, 1 if not
+        if (usernameCheck == 1)
+        {
+            usernameChosen = true;
+            printf("Enter Password: ");
+            cin >> userPassword; // get user input from the keyboard
+        }
+        else
+        {
+            printf("\nUsername '%s' already exists in database! Try again...\n", userUsername.c_str());
+        }
+    }
 
     /* Write new user information to file */
     /* Note: does not check for duplicate usernames / firstname+last name combinations */
@@ -390,8 +440,8 @@ void registration(void)
     fprintf(log, "%d,", newAccountID);
     fprintf(log, "%s,", userAccount.first_name);
     fprintf(log, "%s,", userAccount.last_name);
-    fprintf(log, "%s,", userAccount.username);
-    fprintf(log, "%s,", userAccount.password);
+    fprintf(log, "%s,", userUsername.c_str());
+    fprintf(log, "%s,", userPassword.c_str());
     fprintf(log, "%d", initialAccountBalance);
     fprintf(log, "\n");
 
@@ -401,6 +451,7 @@ void registration(void)
     printf("\nWelcome, %s!\n", userAccount.first_name);
 
     printf("\nPress enter to continue...");
+    getchar();
     getchar();
 }
 
@@ -446,7 +497,7 @@ void updateDataStructure()
         userBankAccountVector.push_back(thisAccount);
         line = "";
     }
-    displayAccounts(userBankAccountVector);
+    // displayAccounts(userBankAccountVector);
 }
 
 void withdrawFunds(int accountID)
@@ -458,7 +509,7 @@ void withdrawFunds(int accountID)
     printf("\nEnter amount to withdraw: ");
     scanf("%d", &amount);
     getchar(); // Get '\n' from scanf above
-    int currentAmount = stoi(userBankAccountVector.at(accountID).AccountBal);
+    int currentAmount = stoi(userBankAccountVector.at(accountID - 1).AccountBal);
     if ((currentAmount - amount) < 0)
     {
         printf("Insufficient funds...");
@@ -469,7 +520,7 @@ void withdrawFunds(int accountID)
     else
     {
         printf("\nAmount withdrawn");
-        userBankAccountVector.at(accountID).AccountBal = to_string(currentAmount - amount);
+        userBankAccountVector.at(accountID - 1).AccountBal = to_string(currentAmount - amount);
         writeNewFile();
         updateDataStructure();
     }
@@ -485,8 +536,8 @@ void depositFunds(int accountID)
     printf("\nEnter amount to deposit: ");
     scanf("%d", &amount);
     getchar(); // Get '\n' from scanf above
-    int currentAmount = stoi(userBankAccountVector.at(accountID).AccountBal);
-    userBankAccountVector.at(accountID).AccountBal = to_string(currentAmount + amount);
+    int currentAmount = stoi(userBankAccountVector.at(accountID - 1).AccountBal);
+    userBankAccountVector.at(accountID - 1).AccountBal = to_string(currentAmount + amount);
     writeNewFile();
     updateDataStructure();
 }
@@ -494,11 +545,12 @@ void depositFunds(int accountID)
 /* Returns the current account balance of the logged in user */
 int balanceCheck(int accountID)
 {
+    // readFileContents();
     printf("\n-------------------------");
     printf("\nBALANCE CHECK");
-    int userBal = stoi(userBankAccountVector.at(accountID).AccountBal);
-    printf("\nUser ID         : %d", stoi(userBankAccountVector.at(accountID).Account_ID));
-    printf("\nUsername        : %s", userBankAccountVector.at(accountID).Username.c_str());
+    int userBal = stoi(userBankAccountVector.at(accountID - 1).AccountBal);
+    printf("\nUser ID         : %d", stoi(userBankAccountVector.at(accountID - 1).Account_ID));
+    printf("\nUsername        : %s", userBankAccountVector.at(accountID - 1).Username.c_str());
     printf("\nAccount balance : %d", userBal);
 
     // system("CLS");

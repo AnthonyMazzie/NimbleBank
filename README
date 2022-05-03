@@ -1,0 +1,10 @@
+This is a program that resembles a traditional bank.
+
+Users can register and then once registered they can login to the system.
+
+Authenticted users can check their balance, deposit, withdraw, retrieve account information, close account and log out.
+
+Unauthenticated users are only allowed to either attempt to log in or register.
+
+All bank information is stored in the login.txt file, and any updated information is stored outputFile.txt.
+
